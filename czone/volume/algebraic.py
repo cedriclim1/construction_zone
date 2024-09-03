@@ -276,7 +276,7 @@ class Cylinder(BaseAlgebraic):
     def radius(self, val):
         val = float(val)
         if val < np.finfo(float).eps:  # negative or subnormal
-            raise ValueError(f"Radius must be positive but is close to zero or negative.")
+            raise ValueError("Radius must be positive but is close to zero or negative.")
         self._radius = val
 
     @property
@@ -288,7 +288,7 @@ class Cylinder(BaseAlgebraic):
     def length(self, val):
         val = float(val)
         if val < np.finfo(float).eps:  # negative or subnormal
-            raise ValueError(f"Length must be positive but is close to zero or negative.")
+            raise ValueError("Length must be positive but is close to zero or negative.")
         self._length = val
 
     def checkIfInterior(self, testPoints):

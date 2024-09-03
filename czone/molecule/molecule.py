@@ -227,7 +227,7 @@ class Molecule(BaseGenerator):
 
         if np.sum(np.abs(mat @ mat.T - np.eye(3))) > 1e-6:
             raise ValueError(
-                f"Input (rotation) matrix must be orthogonal."
+                "Input (rotation) matrix must be orthogonal."
             )  # TODO: provide info on non-orthogonal vectors
 
         self._orientation = mat
