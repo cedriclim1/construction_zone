@@ -16,6 +16,7 @@ from czone.util.voxel import Voxel
 Generators
 """
 
+
 class BaseGenerator(ABC):
     """Base abstract class for Generator objects.
 
@@ -70,6 +71,7 @@ class BaseGenerator(ABC):
 """
 Volumes
 """
+
 
 class BaseVolume(ABC):
     """Base abstract class for Volume objects.
@@ -214,9 +216,12 @@ class BaseAlgebraic(ABC):
 
         return new_alg_object
 
+
 """
 Scenes
 """
+
+
 class BaseScene(ABC):
     def __init__(self, domain, objects):
         self._objects = []
@@ -393,9 +398,12 @@ class BaseScene(ABC):
         else:
             ase_write(filename=fname, images=self.ase_atoms, **kwargs)
 
+
 """
 Transformations
 """
+
+
 class BaseTransform(ABC):
     """Base class for transformation objects which manipulate Generators and Volumes.
 
@@ -575,11 +583,12 @@ class BaseStrain(ABC):
     def bases(self):
         """ "Basis vectors of crystal coordinate system."""
         return self._bases
-    
+
 
 """
 Prefabs
 """
+
 
 class BasePrefab(ABC):
     """Base abstract class for Prefab objects.

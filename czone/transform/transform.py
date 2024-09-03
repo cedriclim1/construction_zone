@@ -8,6 +8,7 @@ from czone.volume import Cylinder, Plane, Sphere
 ########### Base Classes ############
 #####################################
 
+
 class Translation(BaseTransform):
     """Transformation object that applies translations to Generators and Volumes.
 

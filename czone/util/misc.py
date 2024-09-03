@@ -34,7 +34,9 @@ def get_N_splits(N: int, M: int, L: int, rng=None) -> List[int]:
         return []
 
     if L - 2 * M < (N - 1) * M:
-        raise ValueError(f"Minimum separation {M} is too large for {N} requested splits and length {L}")
+        raise ValueError(
+            f"Minimum separation {M} is too large for {N} requested splits and length {L}"
+        )
 
     rng = np.random.default_rng() if rng is None else rng
 

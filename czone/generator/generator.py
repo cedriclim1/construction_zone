@@ -20,6 +20,7 @@ from .amorphous_algorithms import gen_p_substrate
 ########## Generator Classes ########
 #####################################
 
+
 class Generator(BaseGenerator):
     """Generator object for crystal systems.
 

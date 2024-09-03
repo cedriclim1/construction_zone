@@ -20,8 +20,6 @@ if TYPE_CHECKING:
 ############################
 
 
-
-
 class Volume(BaseVolume):
     """Volume object for representing convex spaces.
 

@@ -411,4 +411,3 @@ def get_bounding_box(planes: List[Plane]):
         return hs.intersections - shift, res.status
     else:
         return np.empty((0, 3)), res.status
-    
