@@ -17,40 +17,40 @@ def round_away(x: float) -> float:
     return np.sign(x) * np.ceil(np.abs(x))
 
 
-def get_N_splits(n: int, m: int, l: int, rng=None) -> List[int]:
-    """Get N uniform random integers in interval [M,L-M) with separation M.
+def get_N_splits(N: int, M: int, L: int, rng=None) -> List[int]:
+    """Get N uniform random integers in interval [M,L-M) with separation at least M.
 
     Args:
-        n (int): number of indices
-        m (int): minimum distance between indices and ends of list
-        l (int): length of initial list
+        N (int): number of indices
+        M (int): minimum distance between indices and ends of list
+        L (int): length of initial list
         seed (int): seed for random number generator, default None
 
     Returns:
         List[int]: sorted list of random indices
     """
-    if n == 0:
+    if N == 0:
         return []
 
-    if l - 2 * m < (n - 1) * m:
-        raise ValueError("m is too large for number of splits requested and l")
+    if L - 2 * M < (N - 1) * M:
+        raise ValueError(f"Minimum separation {M} is too large for {N} requested splits and length {L}")
 
     rng = np.random.default_rng() if rng is None else rng
 
     # seed an initial choice and create array to calculate distances in
-    splits = [rng.integers(m, l - m)]
-    data = np.array([x for x in range(m, l - m)])
-    idx = np.ma.array(data=data, mask=np.abs(data - splits[-1]) < m)
+    splits = [rng.integers(M, L - M)]
+    data = np.array([x for x in range(M, L - M)])
+    idx = np.ma.array(data=data, mask=np.abs(data - splits[-1]) < M)
 
-    while len(splits) < n:
+    while len(splits) < N:
         while np.all(idx.mask):
             # no options left, reseed
-            splits = [rng.integers(m, l - m)]
-            idx.mask = np.abs(idx.data - splits[-1]) < m
+            splits = [rng.integers(M, L - M)]
+            idx.mask = np.abs(idx.data - splits[-1]) < M
 
         # add new choice to list and check distance against other indices
         splits.append(rng.choice(idx.compressed()))
-        idx.mask = np.logical_or(idx.mask, np.abs(idx.data - splits[-1]) < m)
+        idx.mask = np.logical_or(idx.mask, np.abs(idx.data - splits[-1]) < M)
 
     splits.sort()
     return splits
