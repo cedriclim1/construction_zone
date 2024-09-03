@@ -29,7 +29,7 @@ class Test_Molecule(czone_TestCase):
         ## Check input errors with wrong shaped arrays
         def init_molecule(*args):
             return Molecule(*args)
-        
+
         species = rng.integers(1, 119, (N - 1, 1))
         positions = rng.normal(size=(N, 3))
         self.assertRaises(ValueError, init_molecule, species, positions)
@@ -179,8 +179,8 @@ class Test_Molecule(czone_TestCase):
             self.assertTrue(np.allclose(mol.orientation, orientation))
 
         def init_molecule(orientation):
-                return Molecule(species, positions, orientation=orientation)
-        
+            return Molecule(species, positions, orientation=orientation)
+
         self.assertRaises(ValueError, init_molecule, np.eye(4))
 
         bad_eigenvals = np.eye(3) * 2
@@ -214,7 +214,7 @@ class Test_Molecule(czone_TestCase):
 
         def init_molecule(origin_idx):
             return Molecule(species, positions, origin=origin_idx)
-        
+
         self.assertRaises(IndexError, init_molecule, 1025)
         self.assertRaises(IndexError, init_molecule, -1025)
 
