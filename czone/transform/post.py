@@ -12,6 +12,7 @@ import numpy as np
 
 from czone.types import BasePostTransform
 
+
 class ChemicalSubstitution(BasePostTransform):
     def __init__(self, mapping: dict, frac, rng=None):
         self.mapping = mapping

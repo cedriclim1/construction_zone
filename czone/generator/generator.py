@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from itertools import product
 from functools import reduce
+from itertools import product
 from typing import List
 
 import numpy as np
@@ -11,10 +11,7 @@ from pymatgen.symmetry.groups import SpaceGroup, sg_symbol_from_int_number
 from czone.transform.post import BasePostTransform
 from czone.transform.strain import BaseStrain
 from czone.transform.transform import BaseTransform
-
 from czone.types import BaseGenerator
-
-
 from czone.util.voxel import Voxel
 
 from .amorphous_algorithms import gen_p_substrate

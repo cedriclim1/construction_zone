@@ -7,10 +7,9 @@ import numpy as np
 from ase import Atoms
 
 from czone.transform import Translation
+from czone.types import BaseScene
 from czone.util.eset import EqualSet
 from czone.util.voxel import Voxel
-
-from czone.types import BaseScene
 
 
 class Scene(BaseScene):

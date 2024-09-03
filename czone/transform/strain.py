@@ -7,6 +7,7 @@ import numpy as np
 
 from czone.types import BaseStrain
 
+
 class HStrain(BaseStrain):
     """Strain class for applying homogeneous strain fields to generators.
 

@@ -1,10 +1,8 @@
 import numpy as np
 from scipy.spatial.transform import Rotation as scRotation  # avoid namespace conflicts
 
-from czone.volume import Cylinder, Plane, Sphere
-
-
 from czone.types import BaseTransform
+from czone.volume import Cylinder, Plane, Sphere
 
 #####################################
 ########### Base Classes ############

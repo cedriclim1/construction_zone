@@ -2,15 +2,13 @@ from __future__ import annotations
 
 import copy
 from functools import reduce
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 import numpy as np
-
 from scipy.spatial import ConvexHull, Delaunay
 
-from czone.util.eset import EqualSet, array_set_equal
-
 from czone.types import BaseAlgebraic, BaseGenerator, BaseVolume
+from czone.util.eset import EqualSet, array_set_equal
 
 from .algebraic import Cylinder, Plane, Sphere
 from .algebraic import get_bounding_box as get_bounding_box_planes

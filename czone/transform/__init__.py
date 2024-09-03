@@ -14,7 +14,6 @@ from .transform import (
     s2s_alignment,
 )
 
-
 __all__ = [
     "ChemicalSubstitution",
     "CustomPostTransform",

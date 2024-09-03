@@ -7,7 +7,6 @@ import numpy as np
 from scipy.optimize import linprog
 from scipy.spatial import Delaunay, HalfspaceIntersection, QhullError
 
-
 from czone.types import BaseAlgebraic
 
 #####################################
