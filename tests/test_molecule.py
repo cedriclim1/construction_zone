@@ -27,25 +27,27 @@ class Test_Molecule(czone_TestCase):
             self.assertReprEqual(mol)
 
         ## Check input errors with wrong shaped arrays
-        init_f = lambda s, p: Molecule(s, p)
+        def init_molecule(*args):
+            return Molecule(*args)
+        
         species = rng.integers(1, 119, (N - 1, 1))
         positions = rng.normal(size=(N, 3))
-        self.assertRaises(ValueError, init_f, species, positions)
+        self.assertRaises(ValueError, init_molecule, species, positions)
 
         species = rng.integers(1, 119, (N, 2))
         positions = rng.normal(size=(N, 3))
-        self.assertRaises(ValueError, init_f, species, positions)
+        self.assertRaises(ValueError, init_molecule, species, positions)
 
         # Numpy should raise an error here, for the reshape of positions
         species = rng.integers(1, 119, (N, 1))
         positions = rng.normal(size=(N, 4))
-        self.assertRaises(ValueError, init_f, species, positions)
+        self.assertRaises(ValueError, init_molecule, species, positions)
 
         # Reshape is valid, but the sizes are now incompatible
         N = 30
         species = rng.integers(1, 119, (N, 1))
         positions = rng.normal(size=(N, 4))
-        self.assertRaises(ValueError, init_f, species, positions)
+        self.assertRaises(ValueError, init_molecule, species, positions)
 
     def test_eq(self):
         N = 256
@@ -110,14 +112,12 @@ class Test_Molecule(czone_TestCase):
         species = rng.integers(1, 119, (N, 1))
         positions = rng.normal(size=(N, 3))
         mol = Molecule(species, positions)
-        f_update_species = lambda s: mol.update_species(s)
-        f_update_positions = lambda p: mol.update_positions(p)
 
         bad_species = rng.integers(1, 119, (N - 1, 1))
-        self.assertRaises(ValueError, f_update_species, bad_species)
+        self.assertRaises(ValueError, lambda s: mol.update_species(s), bad_species)
 
         bad_positions = rng.normal(size=(N - 1, 3))
-        self.assertRaises(ValueError, f_update_positions, bad_positions)
+        self.assertRaises(ValueError, lambda p: mol.update_positions(p), bad_positions)
 
     def test_removes(self):
         N = 1024
@@ -178,15 +178,17 @@ class Test_Molecule(czone_TestCase):
             mol = Molecule(species, positions, orientation=orientation)
             self.assertTrue(np.allclose(mol.orientation, orientation))
 
-        f_molecule = lambda x: Molecule(species, positions, orientation=x)
-        self.assertRaises(ValueError, f_molecule, np.eye(4))
+        def init_molecule(orientation):
+                return Molecule(species, positions, orientation=orientation)
+        
+        self.assertRaises(ValueError, init_molecule, np.eye(4))
 
         bad_eigenvals = np.eye(3) * 2
-        self.assertRaises(ValueError, f_molecule, bad_eigenvals)
+        self.assertRaises(ValueError, init_molecule, bad_eigenvals)
 
         s = np.cbrt(1 / 2.0)
         bad_ortho = np.array([[s, s, 0], [0, s, s], [s, 0, s]])
-        self.assertRaises(ValueError, f_molecule, bad_ortho)
+        self.assertRaises(ValueError, init_molecule, bad_ortho)
 
     def test_origin(self):
         N = 1024
@@ -210,12 +212,13 @@ class Test_Molecule(czone_TestCase):
             mol_1.update_positions(new_positions)
             self.assertTrue(np.allclose(mol_1.origin, np.zeros((3, 1))))
 
-        f_molecule = lambda x: Molecule(species, positions, origin=x)
-        self.assertRaises(IndexError, f_molecule, 1025)
-        self.assertRaises(IndexError, f_molecule, -1025)
+        def init_molecule(origin_idx):
+            return Molecule(species, positions, origin=origin_idx)
+        
+        self.assertRaises(IndexError, init_molecule, 1025)
+        self.assertRaises(IndexError, init_molecule, -1025)
 
-        f_set_origin = lambda x: mol_0.set_origin(idx=x)
-        self.assertRaises(TypeError, f_set_origin, 73.103)
+        self.assertRaises(TypeError, lambda x: mol_0.set_origin(idx=x), 73.103)
 
     def test_transform(self):
         N = 1024
