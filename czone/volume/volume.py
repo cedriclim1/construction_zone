@@ -70,13 +70,13 @@ class Volume(BaseVolume):
         self._priority = 0
         self._tolerance = tolerance
 
-        if not (points is None):
+        if points is not None:
             # expect 2D array with Nx3 points
             assert len(points.shape) == 2, "points must be N x 3 numpy array (x,y,z)"
             assert points.shape[1] == 3, "points must be N x 3 numpy array (x,y,z)"
             self.addPoints(points)
 
-        if not (generator is None):
+        if generator is not None:
             if "gen_origin" in kwargs:
                 self.add_generator(generator, kwargs["gen_origin"])
             else:
@@ -234,7 +234,7 @@ class Volume(BaseVolume):
             self.createHull()
 
     def transform(self, transformation: BaseTransform):
-        if not (self.points is None):
+        if self.points is not None:
             try:
                 self.points = transformation.applyTransformation(self.points)
             except AttributeError:
@@ -249,7 +249,7 @@ class Volume(BaseVolume):
             except AttributeError:
                 raise TypeError("Supplied transformation not transformation object.")
 
-        if transformation.locked and (not (self.generator is None)):
+        if transformation.locked and (self.generator is not None):
             self.generator.transform(transformation)
 
     def checkIfInterior(self, testPoints: np.ndarray):
@@ -260,7 +260,7 @@ class Volume(BaseVolume):
 
         check = np.ones(testPoints.shape[0]).astype(bool)
 
-        if not self.tri is None:
+        if self.tri is not None:
             check = np.logical_and(
                 check, self.tri.find_simplex(testPoints, tol=self.tolerance) >= 0
             )
@@ -277,7 +277,7 @@ class Volume(BaseVolume):
         Returns:
             Nx3 array of points defining extremities of region enclosed by volume.
         """
-        if not (self.points is None):
+        if self.points is not None:
             return self.points
         else:
             # As heuristic, look for any sphere first
@@ -362,10 +362,10 @@ class MultiVolume(BaseVolume):
     def __init__(self, volumes: List[BaseVolume] = None, priority: int = None):
         self._priority = 0
         self._volumes = []
-        if not (volumes is None):
+        if volumes is not None:
             self.add_volume(volumes)
 
-        if not (priority is None):
+        if priority is not None:
             self.priority = priority
 
     def __repr__(self):

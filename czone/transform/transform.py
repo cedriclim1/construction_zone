@@ -21,7 +21,7 @@ class Translation(BaseTransform):
         self._shift = None
         self._locked = None
 
-        if not (shift is None):
+        if shift is not None:
             self.shift = shift
 
         self.locked = locked
@@ -78,10 +78,10 @@ class MatrixTransform(BaseTransform):
         self._matrix = None
         self._origin = None
 
-        if not (matrix is None):
+        if matrix is not None:
             self.matrix = matrix
 
-        if not (origin is None):
+        if origin is not None:
             self.origin = origin
 
         super().__init__(locked=locked, basis_only=basis_only)
@@ -113,7 +113,7 @@ class MatrixTransform(BaseTransform):
         return self.matrix, self.origin
 
     def applyTransformation(self, points):
-        if not (self.origin is None):
+        if self.origin is not None:
             points = np.dot(self.matrix, (points - self.origin).T).T + self.origin
         else:
             points = np.dot(self.matrix, (points).T).T
@@ -126,7 +126,7 @@ class MatrixTransform(BaseTransform):
     def applyTransformation_alg(self, alg_object):
         # TODO: swtich to match/case
         if isinstance(alg_object, Sphere):
-            if not (self.origin is None):
+            if self.origin is not None:
                 alg_object.center = (
                     np.dot(self.matrix, (alg_object.center - self.origin).T).T + self.origin
                 )
@@ -134,7 +134,7 @@ class MatrixTransform(BaseTransform):
                 alg_object.center = np.dot(self.matrix, (alg_object.center).T).T
 
         if isinstance(alg_object, Plane):
-            if not (self.origin is None):
+            if self.origin is not None:
                 alg_object.point = (
                     np.dot(self.matrix, (alg_object.point - self.origin).T).T + self.origin
                 )
@@ -144,7 +144,7 @@ class MatrixTransform(BaseTransform):
             alg_object.normal = np.dot(self.matrix, (alg_object.normal).T).T
 
         if isinstance(alg_object, Cylinder):
-            if not (self.origin is None):
+            if self.origin is not None:
                 alg_object.point = (
                     np.dot(self.matrix, (alg_object.point - self.origin).T).T + self.origin
                 )
@@ -207,7 +207,7 @@ class Reflection(MatrixTransform):
     def __init__(self, plane=None, locked: bool = True, basis_only: bool = False):
         super().__init__(matrix=None, origin=None, locked=locked, basis_only=basis_only)
 
-        if not (plane is None):
+        if plane is not None:
             self.plane = plane
 
     @MatrixTransform.matrix.setter
@@ -230,16 +230,20 @@ class Reflection(MatrixTransform):
         return self.plane
 
     def applyTransformation_alg(self, alg_object):
-        if (isinstance(alg_object), Sphere):
-            alg_object.center = (
-                np.dot(self.matrix, (alg_object.center - self.origin).T).T + self.origin
-            )
+        match alg_object:
+            case Sphere():
+                alg_object.center = (
+                    np.dot(self.matrix, (alg_object.center - self.origin).T).T + self.origin
+                )
 
-        if (isinstance(alg_object), Plane):
-            # TODO: this should reflect the normal, too
-            alg_object.point = (
-                np.dot(self.matrix, (alg_object.point - self.origin).T).T + self.origin
-            )
+            case Plane():
+                # TODO: this should reflect the normal, too
+                alg_object.point = (
+                    np.dot(self.matrix, (alg_object.point - self.origin).T).T + self.origin
+                )
+
+            case _:
+                raise NotImplementedError()
 
         return alg_object
 
@@ -258,7 +262,7 @@ class MultiTransform(BaseTransform):
     def __init__(self, transforms=None):
         self._transforms = []
 
-        if not transforms is None:
+        if transforms is not None:
             self.add_transform(transforms)
 
     @property

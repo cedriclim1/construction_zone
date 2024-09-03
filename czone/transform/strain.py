@@ -119,7 +119,7 @@ class IStrain(BaseStrain):
     """
 
     def __init__(self, fun=None, origin="generator", mode="crystal", **kwargs):
-        if not fun is None:
+        if fun is not None:
             self.strain_fun = fun
         else:
             # apply no strain

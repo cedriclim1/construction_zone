@@ -102,7 +102,7 @@ class PostSequence(BasePostTransform):
 
     def __init__(self, transforms: List[BasePostTransform]):
         self._transforms = []
-        if not (transforms is None):
+        if transforms is not None:
             self.add_transform(transforms)
 
     def add_transform(self, transform: BasePostTransform):
