@@ -1,3 +1,5 @@
+# ruff: noqa: F401
+
 import sys
 import unittest
 
