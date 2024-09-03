@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import copy
-import itertools
-from abc import ABC, abstractmethod
+from itertools import product
 from functools import reduce
 from typing import List
 
@@ -197,13 +195,13 @@ class Generator(BaseGenerator):
         min_extent, max_extent = self.voxel.get_extents(bbox)
         fcoords = np.copy(self.coords)  # grab fractional in case bases are rotated
         # get matrix representing unit cells as grid
-        l = [
+        lattice_points = [
             range(min_extent[0], max_extent[0] + 1),
             range(min_extent[1], max_extent[1] + 1),
             range(min_extent[2], max_extent[2] + 1),
             [0],
         ]
-        ucs = np.array(list(itertools.product(*l)))
+        ucs = np.array(list(product(*lattice_points)))
 
         # get 4D bases with identity in final index to multiply species list
         bases = np.eye(4)
@@ -355,7 +353,7 @@ class AmorphousGenerator(BaseGenerator):
         self._min_dist = None
         self._old_result = None
 
-        if not (origin is None):
+        if origin is not None:
             self.origin = origin
 
         self.species = species
