@@ -10,67 +10,20 @@ import numpy as np
 from pymatgen.core import Lattice, Structure
 from pymatgen.symmetry.groups import SpaceGroup, sg_symbol_from_int_number
 
-from czone.generator.amorphous_algorithms import gen_p_substrate
 from czone.transform.post import BasePostTransform
 from czone.transform.strain import BaseStrain
 from czone.transform.transform import BaseTransform
-from czone.volume.voxel import Voxel
+
+from czone.types import BaseGenerator
+
+
+from czone.util.voxel import Voxel
+
+from .amorphous_algorithms import gen_p_substrate
 
 #####################################
 ########## Generator Classes ########
 #####################################
-
-
-class BaseGenerator(ABC):
-    """Base abstract class for Generator objects.
-
-    Generator objects are additive components in Construction Zone. When designing
-    nanostructures, Generators contain information about the arrangement of atoms
-    in space and can supply atoms at least where they should exist.
-
-    BaseGenerators are typically not created directly. Use the Generator class
-    for crystalline systems, and the AmorphousGenerator class for non-crystalline
-    systems.
-    """
-
-    @abstractmethod
-    def supply_atoms(self, bbox: np.ndarray):
-        """Given a bounding region, supply enough atoms to complete fill the region.
-
-        Args:
-            bbox (np.ndarray): Nx3 array defining vertices of convex region
-
-        Returns:
-            Coordinates and species of atoms that fill convex region.
-            Returned as Nx3 and Nx1 arrays.
-        """
-        pass
-
-    @abstractmethod
-    def transform(self, transformation: BaseTransform):
-        """Transform Generator object with transformation described by Transformation object.
-
-        Args:
-            transformation (BaseTransform): Transformation object from transforms module.
-        """
-        pass
-
-    def from_generator(self, **kwargs):
-        """Constructor for new Generators based on existing Generator object.
-
-        Args:
-            **kwargs: "transformation"=List[BaseTransformation] to apply a
-                        series of transformations to the copied generator.
-
-        """
-        new_generator = copy.deepcopy(self)
-
-        if "transformation" in kwargs.keys():
-            for t in kwargs["transformation"]:
-                new_generator.transform(t)
-
-        return new_generator
-
 
 class Generator(BaseGenerator):
     """Generator object for crystal systems.

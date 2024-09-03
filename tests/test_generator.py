@@ -1,22 +1,20 @@
-import unittest
-
 import numpy as np
-from czone_test_fixtures import czone_TestCase
 from pymatgen.core import Lattice, Structure
-from test_transform import get_random_mapping
 
-from czone.generator.generator import AmorphousGenerator, Generator, NullGenerator
-from czone.transform.post import ChemicalSubstitution
-from czone.transform.strain import HStrain
-from czone.transform.transform import (
+from czone.generator import AmorphousGenerator, Generator, NullGenerator
+from czone.transform import (
+    ChemicalSubstitution,
+    HStrain,
     Inversion,
     Reflection,
     Rotation,
     Translation,
     rot_vtv,
 )
-from czone.volume.algebraic import Plane, Sphere
-from czone.volume.volume import Volume
+from czone.volume import Plane, Sphere, Volume
+
+from .czone_test_fixtures import czone_TestCase
+from .test_transform import get_random_mapping
 
 seed = 72349
 rng = np.random.default_rng(seed=seed)

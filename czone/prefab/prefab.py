@@ -1,47 +1,12 @@
-import copy
-from abc import ABC, abstractmethod
 from typing import Tuple
 
 import numpy as np
 
-from czone.generator.generator import Generator
-from czone.transform.transform import Reflection, Rotation, Translation, rot_vtv
-from czone.util.misc import get_N_splits
-from czone.volume.algebraic import Plane, Sphere, snap_plane_near_point
-from czone.volume.volume import BaseVolume, MultiVolume
-
-
-class BasePrefab(ABC):
-    """Base abstract class for Prefab objects.
-
-    Prefab objects are objects and classes that can run predesigned algorithms
-    for generating certain classes of regular objects, typically with
-    sampleable features or properties. For example, planar defects in FCC
-    systems are easily described in algorithmic form-- a series of {111} planes
-    can be chosen to put a defect on.
-
-    Prefab objects will generally take in at least a base Generator object defining
-    the system of interest and potentially take in Volume objects. They will return
-    Volumes, or, more likely, MultiVolume objects which contains the resultant
-    structure defined by the prefab routine.
-    """
-
-    @abstractmethod
-    def build_object(self) -> BaseVolume:
-        """Construct and return a prefabicated structure."""
-        pass
-
-    @property
-    def rng(self):
-        """Random number generator associated with Prefab"""
-        return self._rng
-
-    @rng.setter
-    def rng(self, new_rng: np.random.BitGenerator):
-        if not isinstance(new_rng, np.random.Generator):
-            raise TypeError("Must supply a valid Numpy Generator")
-
-        self._rng = new_rng
+from czone.generator import Generator
+from czone.transform import Reflection, Rotation, Translation, rot_vtv
+from czone.types import BasePrefab, BaseVolume
+from czone.util.misc import get_N_splits, snap_plane_near_point
+from czone.volume import MultiVolume, Plane, Sphere
 
 
 class fccMixedTwinSF(BasePrefab):

@@ -5,22 +5,18 @@ from dataclasses import dataclass, field
 import numpy as np
 from pymatgen.core import Lattice, Structure
 
-from czone.generator.generator import AmorphousGenerator, BaseGenerator, Generator, NullGenerator
-from czone.scene.scene import BaseScene, PeriodicScene, Scene
-from czone.transform.post import BasePostTransform
-from czone.transform.strain import BaseStrain
-from czone.volume.algebraic import (
-    BaseAlgebraic,
+from czone.types import BaseGenerator, BaseAlgebraic, BaseScene, BaseVolume, BasePostTransform, BaseStrain
+from czone.generator import AmorphousGenerator, Generator, NullGenerator
+from czone.scene import PeriodicScene, Scene
+from czone.volume import (
     Cylinder,
     Plane,
     Sphere,
-)
-from czone.volume.volume import (
-    BaseVolume,
     MultiVolume,
     Volume,
 )
-from czone.volume.voxel import Voxel
+
+from czone.util.voxel import Voxel
 
 
 @dataclass(kw_only=True)

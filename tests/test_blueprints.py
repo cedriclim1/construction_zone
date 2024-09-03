@@ -2,14 +2,13 @@ from pathlib import Path
 
 import numpy as np
 
-from czone.blueprint.blueprint import Blueprint
-from czone.blueprint.serializer import Serializer
-from czone.generator.generator import NullGenerator
-from czone.volume.voxel import Voxel
+from czone.blueprint import Blueprint, Serializer
+from czone.generator import NullGenerator
+from czone.util.voxel import Voxel
 
-from czone_test_fixtures import czone_TestCase
-from test_generator import get_random_amorphous_generator, get_random_generator
-from test_scene import get_random_object, get_random_scene
+from .czone_test_fixtures import czone_TestCase
+from .test_generator import get_random_amorphous_generator, get_random_generator
+from .test_scene import get_random_object, get_random_scene
 
 seed = 9815108923
 rng = np.random.default_rng(seed=seed)

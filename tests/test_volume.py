@@ -1,15 +1,22 @@
 from functools import reduce
 
 import numpy as np
-from czone_test_fixtures import czone_TestCase
 from scipy.spatial import ConvexHull, Delaunay
 
-from czone.generator.generator import Generator, NullGenerator
-from czone.transform.transform import Rotation
+from czone.generator import Generator, NullGenerator
+from czone.transform import Rotation
 from czone.util.eset import EqualSet, array_set_equal
-from czone.volume.algebraic import Cylinder, Plane, Sphere, convex_hull_to_planes, get_bounding_box
-from czone.volume.volume import MultiVolume, Volume, makeRectPrism
-from czone.volume.voxel import Voxel
+from czone.volume import (
+    Cylinder,
+    MultiVolume,
+    Plane,
+    Sphere,
+    Volume,
+    convex_hull_to_planes,
+    get_bounding_box,
+)
+
+from .czone_test_fixtures import czone_TestCase
 
 seed = 32135213035
 rng = np.random.default_rng(seed=seed)
@@ -341,24 +348,6 @@ class Test_Cylinder(czone_TestCase):
             r_points = R.applyTransformation(test_points)
 
             self.assertTrue(np.array_equal(ref_check, r_cyl.checkIfInterior(r_points)))
-
-
-#### Tests for Voxel class
-
-
-class Test_Voxel(czone_TestCase):
-    def setUp(self):
-        self.N_trials = 32
-
-    def test_init(self):
-        for _ in range(self.N_trials):
-            bases = rng.normal(size=(3, 3))
-            scale = rng.uniform(0.1, 10)
-            origin = rng.uniform(-100, 100, size=(3,))
-
-            voxel = Voxel(bases, scale, origin)
-            self.assertReprEqual(voxel)
-
 
 #### Tests for Volume and MultiVolue
 

@@ -7,8 +7,7 @@ import numpy as np
 from ase import Atoms
 from pymatgen.core.structure import IMolecule
 
-from czone.generator.generator import BaseGenerator
-from czone.transform.transform import BaseTransform
+from czone.types import BaseGenerator, BaseTransform
 from czone.util.eset import array_set_equal
 
 

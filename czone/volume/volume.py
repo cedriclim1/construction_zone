@@ -1,109 +1,27 @@
+from __future__ import annotations
+
 import copy
-from abc import ABC, abstractmethod
 from functools import reduce
-from typing import List
+from typing import List, TYPE_CHECKING
 
 import numpy as np
-from ase import Atoms
-from ase.io import write as ase_write
+
 from scipy.spatial import ConvexHull, Delaunay
 
-from czone.generator.generator import AmorphousGenerator, BaseGenerator
-from czone.transform.transform import BaseTransform
 from czone.util.eset import EqualSet, array_set_equal
-from czone.volume.algebraic import BaseAlgebraic, Cylinder, Plane, Sphere
-from czone.volume.algebraic import get_bounding_box as get_bounding_box_planes
 
+from czone.types import BaseAlgebraic, BaseGenerator, BaseVolume
+
+from .algebraic import Cylinder, Plane, Sphere
+from .algebraic import get_bounding_box as get_bounding_box_planes
+
+if TYPE_CHECKING:
+    from czone.transform.transform import BaseTransform
 ############################
 ###### Volume Classes ######
 ############################
 
 
-class BaseVolume(ABC):
-    """Base abstract class for Volume objects.
-
-    Volume objects are subtractive components in Construction Zone. When designing
-    nanostructures, Volumes contain information about where atoms should and
-    should not be placed. Semantically, volumes can be thought of as singular
-    objects in space.
-
-    BaseVolumes are typically not created directly. Use the Volume class for
-    generalized convex objects, and the MultiVolume class for unions of convex
-    objects.
-
-    Attributes:
-        atoms (np.ndarray): Nx3 array of atom positions of atoms lying within volume.
-        species (np.ndarray): Nx1 array of atomic numbers of atoms lying within volume.
-        ase_atoms (Atoms): Collection of atoms in volume as ASE Atoms object.
-        priority (int): Relative generation precedence of volume.
-    """
-
-    @abstractmethod
-    def __init__(self, **kwargs):
-        pass
-
-    @property
-    def atoms(self):
-        """Array of atomic positions of atoms lying within volume."""
-        return self._atoms
-
-    @property
-    def species(self):
-        """Array of atomic numbers of atoms lying within volume."""
-        return self._species
-
-    @property
-    def ase_atoms(self):
-        """Collection of atoms in volume as ASE Atoms object."""
-        return Atoms(symbols=self.species, positions=self.atoms)
-
-    @property
-    def priority(self):
-        """Relative generation precedence of volume."""
-        return self._priority
-
-    @priority.setter
-    def priority(self, priority):
-        if not np.issubdtype(type(priority), np.integer):
-            raise TypeError("Priority needs to be integer valued")
-
-        self._priority = int(priority)
-
-    @abstractmethod
-    def transform(self, transformation):
-        """Transform volume with given transformation.
-
-        Args:
-            transformation (BaseTransform): transformation to apply to volume.
-        """
-        pass
-
-    @abstractmethod
-    def populate_atoms(self):
-        """Fill volume with atoms."""
-        pass
-
-    @abstractmethod
-    def checkIfInterior(self, testPoints: np.ndarray):
-        """Check points to see if they lie in interior of volume.
-
-        Returns:
-            Logical array indicating which points lie inside the volume.
-        """
-        pass
-
-    def to_file(self, fname, **kwargs):
-        """Write object to an output file, using ASE write utilities.
-
-        Args:
-            fname (str): output file name.
-            **kwargs: any key word arguments otherwise accepted by ASE write.
-        """
-        ase_write(filename=fname, images=self.ase_atoms, **kwargs)
-
-    @abstractmethod
-    def from_volume(self, **kwargs):
-        pass
 
 
 class Volume(BaseVolume):
@@ -271,15 +189,11 @@ class Volume(BaseVolume):
         assert isinstance(val, float)
         self._tolerance = val
 
-    def add_generator(self, generator, origin=None):
-        if not isinstance(generator, BaseGenerator):
+    def add_generator(self, generator: BaseGenerator, origin=None):
+        try:
+            new_generator = generator.from_generator()
+        except AttributeError:
             raise TypeError("Supplied generator is not of Generator() class")
-
-        new_generator = copy.deepcopy(generator)
-
-        if not isinstance(generator, AmorphousGenerator):
-            if not origin is None:
-                new_generator.voxel.origin = origin
 
         self._generator = new_generator
 
@@ -320,17 +234,20 @@ class Volume(BaseVolume):
             self.createHull()
 
     def transform(self, transformation: BaseTransform):
-        assert isinstance(
-            transformation, BaseTransform
-        ), "Supplied transformation not transformation object."
-
         if not (self.points is None):
-            self.points = transformation.applyTransformation(self.points)
+            try:
+                self.points = transformation.applyTransformation(self.points)
+            except AttributeError:
+                raise TypeError("Supplied transformation not transformation object.")
+
             self.createHull()
 
         if len(self.alg_objects) > 0:
-            for i, obj in enumerate(self.alg_objects):
-                self.alg_objects[i] = transformation.applyTransformation_alg(obj)
+            try:
+                for i, obj in enumerate(self.alg_objects):
+                    self.alg_objects[i] = transformation.applyTransformation_alg(obj)
+            except AttributeError:
+                raise TypeError("Supplied transformation not transformation object.")
 
         if transformation.locked and (not (self.generator is None)):
             self.generator.transform(transformation)

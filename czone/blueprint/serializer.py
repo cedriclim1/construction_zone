@@ -4,7 +4,7 @@ from pathlib import Path
 
 import numpy as np
 
-from czone.blueprint.blueprint import (
+from .blueprint import (
     BaseNode,
     Blueprint,
     NodeMap,

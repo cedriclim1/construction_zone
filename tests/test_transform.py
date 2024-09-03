@@ -1,10 +1,9 @@
-import unittest
-
 import numpy as np
-from czone_test_fixtures import czone_TestCase
 
 from czone.transform.post import ChemicalSubstitution
 from czone.transform.strain import HStrain
+
+from .czone_test_fixtures import czone_TestCase
 
 seed = 871342
 rng = np.random.default_rng(seed=seed)

@@ -1,8 +1,6 @@
-import unittest
-
 import numpy as np
 import pytest
-from czone_test_fixtures import czone_TestCase
+from .czone_test_fixtures import czone_TestCase
 
 from czone.generator.amorphous_algorithms import gen_p_substrate, gen_p_substrate_batched
 from czone.generator.generator import AmorphousGenerator, Generator

@@ -1,96 +1,14 @@
-from abc import ABC, abstractmethod
-
 import numpy as np
 from scipy.spatial.transform import Rotation as scRotation  # avoid namespace conflicts
 
-from czone.volume.algebraic import BaseAlgebraic, Cylinder, Plane, Sphere
+from czone.volume import Cylinder, Plane, Sphere
+
+
+from czone.types import BaseTransform
 
 #####################################
 ########### Base Classes ############
 #####################################
-
-
-class BaseTransform(ABC):
-    """Base class for transformation objects which manipulate Generators and Volumes.
-
-    Transformation objects contain logic and parameters for manipulating the
-    different types of objects used in Construction Zone, namely, Generators and
-    Volumes. BaseTransform is typically not created directly. Use MatrixTransform for
-    generalized matrix transformations.
-
-    Attributes:
-        locked (bool): whether or not transformation applies jointly to volumes containing generators
-        basis_only (bool): whether or not transformation applies only to basis of generators
-        params (tuple): parameters describing transformation
-
-    """
-
-    def __init__(self, locked: bool = True, basis_only: bool = False):
-        self.locked = locked
-        self.basis_only = basis_only
-
-    @abstractmethod
-    def applyTransformation(self, points: np.ndarray) -> np.ndarray:
-        """Apply transformation to a collection of points in space.
-
-        Args:
-            points (np.ndarray): Nx3 array of points to transform.
-
-        Returns:
-            np.ndarray: Nx3 array of transformed points.
-        """
-        pass
-
-    @abstractmethod
-    def applyTransformation_bases(self, points: np.ndarray) -> np.ndarray:
-        """Apply transformation to bases of a generator.
-
-        Args:
-            points (np.ndarray): 3x3 array of bases from generator voxel.
-
-        Returns:
-            np.ndarray: transformed 3x3 array of bases.
-        """
-        pass
-
-    @abstractmethod
-    def applyTransformation_alg(self, alg_object: BaseAlgebraic) -> BaseAlgebraic:
-        """Apply transformation to algebraic object.
-
-        Args:
-            alg_object (BaseAlgebraic): Algebraic object to transform.
-
-        Returns:
-            BaseAlgebraic: Transformed object.
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def params(self) -> tuple:
-        """Return parameters describing transformation."""
-        pass
-
-    @property
-    def locked(self) -> bool:
-        """Boolean value indicating whether or not transformation jointly applied to Volumes and Generators."""
-        return self._locked
-
-    @locked.setter
-    def locked(self, locked):
-        assert isinstance(locked, bool), "Must supply bool to locked parameter."
-        self._locked = locked
-
-    @property
-    def basis_only(self) -> bool:
-        """Boolean value indicating whether or not transformation applied only to basis of Generators."""
-        return self._basis_only
-
-    @basis_only.setter
-    def basis_only(self, basis_only):
-        assert isinstance(basis_only, bool), "Must supply bool to basis_only parameter"
-        self._basis_only = basis_only
-
 
 class Translation(BaseTransform):
     """Transformation object that applies translations to Generators and Volumes.
@@ -318,6 +236,7 @@ class Reflection(MatrixTransform):
             )
 
         if (isinstance(alg_object), Plane):
+            # TODO: this should reflect the normal, too
             alg_object.point = (
                 np.dot(self.matrix, (alg_object.point - self.origin).T).T + self.origin
             )

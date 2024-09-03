@@ -6,32 +6,11 @@ Useful for chemical modifciations, statistical defects, etc.
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from typing import List
 
 import numpy as np
 
-
-class BasePostTransform(ABC):
-    """Base class for post-generation pre-volume transformations."""
-
-    def __init__(self):
-        self.origin = np.array([0, 0, 0])
-
-    @abstractmethod
-    def apply_function(self, points: np.ndarray, species: np.ndarray, **kwargs):
-        """Apply function to a collection of points and species
-
-        Args:
-            points (np.ndarray): Nx3 array of points in space
-            species (np.ndarray): Nx1 array of corresponding species
-
-        Returns:
-            (np.ndarray, np.ndarray): Transformed arrays
-
-        """
-        pass
-
+from czone.types import BasePostTransform
 
 class ChemicalSubstitution(BasePostTransform):
     def __init__(self, mapping: dict, frac, rng=None):

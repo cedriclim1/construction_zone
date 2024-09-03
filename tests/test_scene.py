@@ -1,17 +1,13 @@
-import unittest
-from functools import reduce
-from itertools import repeat
-
 import numpy as np
-from czone_test_fixtures import czone_TestCase
-from test_generator import get_random_generator
-from test_volume import get_random_volume
 
-from czone.molecule.molecule import Molecule
-from czone.scene.scene import PeriodicScene, Scene
-from czone.volume.algebraic import Sphere
-from czone.volume.volume import MultiVolume, Volume
-from czone.volume.voxel import Voxel
+from czone.molecule import Molecule
+from czone.scene import PeriodicScene, Scene
+from czone.volume import MultiVolume, Sphere, Volume
+from czone.util.voxel import Voxel
+
+from .czone_test_fixtures import czone_TestCase
+from .test_generator import get_random_generator
+from .test_volume import get_random_volume
 
 seed = 709123
 rng = np.random.default_rng(seed=seed)

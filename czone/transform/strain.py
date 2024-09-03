@@ -1,89 +1,11 @@
 from __future__ import annotations
 
 import copy
-from abc import ABC, abstractmethod
 from typing import Callable
 
 import numpy as np
 
-
-class BaseStrain(ABC):
-    """Base class for strain fields that act on Generators.
-
-    Strain objects can be attached to generators, and transform the coordinates
-    of the atoms post-generation of the supercell. Strain fields apply strain
-    in crystal coordinate system by default.
-
-    Attributes:
-        origin (np.ndarray): origin with which respect coordinates are strained
-        mode (str): "crystal" or "standard", for straining in crystal coordinates
-                    or for straining coordinates with respect to standard R3
-                    orthonromal basis and orientation, respectively
-        bases (np.ndarray): 3x3 array representing generator basis vectors
-    """
-
-    def __init__(self):
-        self.origin = np.array([0, 0, 0])
-
-    @abstractmethod
-    def apply_strain(self, points: np.ndarray) -> np.ndarray:
-        """Apply strain to a collection of points.
-
-        Args:
-            points (np.ndarray): Nx3 array of points in space
-
-        Returns:
-            np.ndarray: Nx3 array of strained points in space
-        """
-        pass
-
-    def scrape_params(self, obj: BaseGenerator):  # noqa
-        """Helper method to grab origin and bases from host generator.
-
-        Args:
-            obj (BaseGenerator): generator to grab parameters from
-        """
-        if self.mode == "crystal":
-            self._bases = np.copy(obj.voxel.sbases)
-
-        if self.origin_type == "generator":
-            self.origin = np.copy(obj.origin)
-
-    @property
-    def origin(self):
-        """Origin with respect to which strain is applied."""
-        return self._origin
-
-    @origin.setter
-    def origin(self, val):
-        assert val.shape == (3,), "Origin must have shape (3,)"
-        self._origin = np.array(val)
-
-    @property
-    def origin_type(self):
-        return self._origin_type
-
-    @origin_type.setter
-    def origin_type(self, val):
-        self._origin_type = val
-
-    @property
-    def mode(self):
-        """Coordinate system for strain application, either 'crystal' or 'standard'."""
-        return self._mode
-
-    @mode.setter
-    def mode(self, val):
-        if val == "crystal" or "standard":
-            self._mode = val
-        else:
-            raise ValueError("Mode must be either crystal or standard")
-
-    @property
-    def bases(self):
-        """ "Basis vectors of crystal coordinate system."""
-        return self._bases
-
+from czone.types import BaseStrain
 
 class HStrain(BaseStrain):
     """Strain class for applying homogeneous strain fields to generators.

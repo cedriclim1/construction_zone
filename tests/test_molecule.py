@@ -1,9 +1,9 @@
 import numpy as np
-from czone_test_fixtures import czone_TestCase
+from .czone_test_fixtures import czone_TestCase
 from pymatgen.core.structure import Molecule as pmg_molecule
 
-from czone.molecule.molecule import Molecule
-from czone.transform.transform import MatrixTransform
+from czone.molecule import Molecule
+from czone.transform import MatrixTransform
 
 seed = 8907190823
 rng = np.random.default_rng(seed=seed)

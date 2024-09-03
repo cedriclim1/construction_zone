@@ -1,1 +1,1 @@
-# from czone.generator.generator import AmorphousGenerator, Generator, NullGenerator
+from .generator import Generator, AmorphousGenerator, NullGenerator

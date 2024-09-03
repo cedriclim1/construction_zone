@@ -1,9 +1,9 @@
-import unittest
-
 import numpy as np
-from czone_test_fixtures import czone_TestCase
 
+from czone.util.voxel import Voxel
 from czone.util.eset import EqualSet, array_set_equal
+
+from .czone_test_fixtures import czone_TestCase
 
 seed = 9817924
 rng = np.random.default_rng(seed=seed)
@@ -142,3 +142,18 @@ class Test_ArraySet(czone_TestCase):
 
             Xp[23, :] = rng.uniform(size=(1, 3)) + 1.0
             self.assertFalse(array_set_equal(X, Xp))
+
+
+#### Tests for Voxel class
+class Test_Voxel(czone_TestCase):
+    def setUp(self):
+        self.N_trials = 32
+
+    def test_init(self):
+        for _ in range(self.N_trials):
+            bases = rng.normal(size=(3, 3))
+            scale = rng.uniform(0.1, 10)
+            origin = rng.uniform(-100, 100, size=(3,))
+
+            voxel = Voxel(bases, scale, origin)
+            self.assertReprEqual(voxel)

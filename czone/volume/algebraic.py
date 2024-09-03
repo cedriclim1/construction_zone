@@ -1,75 +1,18 @@
-import copy
-from abc import ABC, abstractmethod
+from __future__ import annotations
+
 from functools import reduce
-from typing import Generator, List, Tuple
+from typing import List
 
 import numpy as np
 from scipy.optimize import linprog
 from scipy.spatial import Delaunay, HalfspaceIntersection, QhullError
 
-from czone.transform.strain import HStrain
-from czone.util.misc import round_away
+
+from czone.types import BaseAlgebraic
 
 #####################################
 ##### Geometric Surface Classes #####
 #####################################
-
-
-class BaseAlgebraic(ABC):
-    """Base class for algebraic surfaces.
-
-
-    Attributes:
-        params (Tuple): parameters describing algebraic object
-        tol (float): numerical tolerance used to pad interiority checks.
-                    Default is 1e-5.
-
-    """
-
-    def __init__(self, tol: float = 1e-10):
-        self.tol = tol
-
-    @abstractmethod
-    def checkIfInterior(self, testPoints: np.ndarray):
-        """Check if points lie on interior side of geometric surface.
-
-        Args:
-            testPoints (np.ndarray): Nx3 array of points to check.
-
-        Returns:
-            Nx1 logical array indicating whether or not point is on interior
-            of surface.
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def params(self):
-        pass
-
-    @property
-    def tol(self):
-        return self._tol
-
-    @tol.setter
-    def tol(self, val):
-        assert float(val) >= 0.0
-        self._tol = float(val)
-
-    def from_alg_object(self, **kwargs):
-        """Constructor for new algebraic objects based on existing Algebraic object.
-
-        Args:
-            **kwargs: "transformation"=List[BaseTransformation] to apply a
-                        series of transformations to the copied generator.
-        """
-        new_alg_object = copy.deepcopy(self)
-
-        if "transformation" in kwargs.keys():
-            for t in kwargs["transformation"]:
-                new_alg_object = t.applyTransformation_alg(new_alg_object)
-
-        return new_alg_object
 
 
 class Sphere(BaseAlgebraic):
@@ -469,85 +412,4 @@ def get_bounding_box(planes: List[Plane]):
         return hs.intersections - shift, res.status
     else:
         return np.empty((0, 3)), res.status
-
-
-def snap_plane_near_point(
-    point: np.ndarray, generator: Generator, miller_indices: Tuple[int], mode: str = "nearest"
-):
-    """Determine nearest crystallographic nearest to point in space for given crystal coordinate system.
-
-    Args:
-        point (np.ndarray): Point in space.
-        generator (Generator): Generator describing crystal coordinat system.
-        miller_indices (Tuple[int]): miller indices of desired plane.
-        mode (str): "nearest" for absolute closest plane to point; "floor" for
-                    next nearest valid plane towards generator origin; "ceil"
-                    for next furthest valid plane from generator origin.
-
-    Returns:
-        Plane in space with orientation given by Miller indices snapped to
-        nearest valid location.
-
-    """
-
-    miller_indices = np.array(miller_indices)
-
-    # check if generator has a strain field
-    if generator.strain_field is None:
-        # get point coordinates in generator coordinate system
-        point_fcoord = np.array(np.linalg.solve(generator.voxel.sbases, point))
-    else:
-        assert isinstance(
-            generator.strain_field, HStrain
-        ), "Finding Miller planes with inhomogenous strain fields is not supported."
-
-        if generator.strain_field.mode == "crystal":
-            H = generator.strain_field.matrix
-            point_fcoord = np.array(np.linalg.solve(H @ generator.voxel.sbases, point))
-
-    # get lattice points that are intersected by miller plane
-    with np.errstate(divide="ignore"):  # check for infs directly
-        target_fcoord = 1 / miller_indices
-
-    new_point = np.zeros((3, 1))
-
-    # TODO: if bases are not orthonormal, this procedure is not correct
-    # since the following rounds towards the nearest lattice points, with equal
-    # weights given to all lattice vectors
-    if mode == "nearest":
-        for i in range(3):
-            new_point[i, 0] = (
-                np.round(point_fcoord[i] / target_fcoord[i]) * target_fcoord[i]
-                if not np.isinf(target_fcoord[i])
-                else point_fcoord[i]
-            )
-    elif mode == "ceil":
-        for i in range(3):
-            new_point[i, 0] = (
-                round_away(point_fcoord[i] / target_fcoord[i]) * target_fcoord[i]
-                if not np.isinf(target_fcoord[i])
-                else point_fcoord[i]
-            )
-    elif mode == "floor":
-        for i in range(3):
-            new_point[i, 0] = (
-                np.fix(point_fcoord[i] / target_fcoord[i]) * target_fcoord[i]
-                if not np.isinf(target_fcoord[i])
-                else point_fcoord[i]
-            )
-
-    if generator.strain_field is None:
-        # scale back to real space
-        new_point = generator.voxel.sbases @ new_point
-
-        # get perpendicular vector
-        normal = generator.voxel.reciprocal_bases.T @ miller_indices
-    else:
-        H = generator.voxel.sbases
-        G = generator.strain_field.matrix
-        new_point = G @ H @ new_point
-
-        # get perpendicular vector
-        normal = np.linalg.inv(H @ G).T @ miller_indices
-
-    return Plane(normal=normal, point=new_point)
+    

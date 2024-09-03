@@ -20,10 +20,10 @@ import numpy as np
 from pymatgen.core import Element
 from scipy.sparse import csr_matrix
 
-from czone.molecule.molecule import Molecule
-from czone.transform.transform import Rotation, Translation, rot_v, rot_vtv
-from czone.volume.volume import BaseVolume
-from czone.surface.alpha_shape import alpha_shape_alg_3D, alpha_shape_alg_3D_with_sampling
+from czone.molecule import Molecule
+from czone.transform import Rotation, Translation, rot_v, rot_vtv
+from czone.types import BaseVolume
+from .alpha_shape import alpha_shape_alg_3D, alpha_shape_alg_3D_with_sampling
 
 
 def sparse_matrix_from_tri(simplices):

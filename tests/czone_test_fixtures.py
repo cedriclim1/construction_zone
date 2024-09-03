@@ -4,16 +4,14 @@ import unittest
 ## Import everything into the namespace so that repr's can evaluate
 import numpy as np
 from numpy import array
+from pymatgen.core import Lattice, Structure
 
-from czone.generator.generator import AmorphousGenerator, Generator, NullGenerator
-from czone.molecule.molecule import Molecule
-from czone.scene.scene import PeriodicScene, Scene
-from czone.transform.post import ChemicalSubstitution
-from czone.transform.strain import HStrain
-from czone.volume.algebraic import Cylinder, Plane, Sphere
-from czone.volume.volume import MultiVolume, Volume
-from czone.volume.voxel import Voxel
-from pymatgen.core import Structure, Lattice
+from czone.generator import AmorphousGenerator, Generator, NullGenerator
+from czone.molecule import Molecule
+from czone.scene import PeriodicScene, Scene
+from czone.transform import ChemicalSubstitution, HStrain
+from czone.util.voxel import Voxel
+from czone.volume import Cylinder, MultiVolume, Plane, Sphere, Volume
 
 
 class czone_TestCase(unittest.TestCase):
