@@ -14,21 +14,21 @@ try:
     import yaml
 
     YAML_AVAILABLE = True
-except ImportError as e:
+except ImportError:
     YAML_AVAILABLE = False
 
 try:
     import tomlkit
 
     TOML_AVAILABLE = True
-except ImportError as e:
+except ImportError:
     TOML_AVAILABLE = False
 
 try:
     import h5py
 
     H5PY_AVAIALBLE = True
-except ImportError as e:
+except ImportError:
     H5PY_AVAIALBLE = False
 
 
