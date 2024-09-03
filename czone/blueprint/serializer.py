@@ -170,7 +170,7 @@ class h5_Serializer(BaseSerializer):
                 case None:
                     continue
                 case np.ndarray():
-                    dset = G.create_dataset(k, data=v)
+                    G.create_dataset(k, data=v)
                 case _:
                     G.attrs[k] = v
 
