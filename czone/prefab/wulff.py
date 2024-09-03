@@ -70,7 +70,7 @@ class WulffBase(ABC):
     def natoms(self, val):
         try:
             self._natoms = int(val)
-        except:
+        except TypeError:
             raise TypeError("natoms must be convertible to integer")
 
     @property
@@ -401,8 +401,7 @@ class WulffIcosahedron(WulffDecahedron):
     def get_construction(self):
         wulff = Icosahedron(self.surface_energies, self.twin_energy, self.p_atoms, self.natoms)
 
-        sf = wulff._get_icosahedral_scale_factor()
-        planes_lists = [[] for x in range(20)]
+        planes_lists = [[] for _ in range(20)]
 
         for form in wulff.forms:
             planes = self.planes_from_form(form)
