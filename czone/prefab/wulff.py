@@ -5,11 +5,9 @@ import numpy as np
 from ase import Atoms
 from wulffpack import Decahedron, Icosahedron, SingleCrystal, Winterbottom
 
-from czone.generator.generator import Generator
-from czone.transform.strain import HStrain, IStrain
-from czone.transform.transform import MatrixTransform, Rotation, rot_v
-from czone.volume.algebraic import Cylinder, Plane, Sphere
-from czone.volume.volume import MultiVolume, Volume
+from czone.generator import Generator
+from czone.transform import HStrain, IStrain, MatrixTransform, Rotation, rot_v
+from czone.volume import Cylinder, MultiVolume, Plane, Sphere, Volume
 
 """
 Submodule provides convenience constructors for returning Wulff constructions
