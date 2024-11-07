@@ -1,3 +1,1 @@
-from .scene import PeriodicScene, Scene
-
-__all__ = ["PeriodicScene", "Scene"]
+from .scene import *

@@ -1,19 +1,42 @@
+import copy
+from abc import ABC, abstractmethod
 from typing import Tuple
 
 import numpy as np
 
-from czone.generator import Generator
-from czone.transform import Reflection, Rotation, Translation, rot_vtv
-from czone.types import BasePrefab, BaseVolume
-from czone.util.misc import get_N_splits, snap_plane_near_point
-from czone.volume import MultiVolume, Plane, Sphere
+from ..generator import Generator
+from ..transform import *
+from ..util.misc import get_N_splits
+from ..volume import BaseVolume, MultiVolume, Volume
+from ..volume.algebraic import Plane, snap_plane_near_point
+
+
+class BasePrefab(ABC):
+    """Base abstract class for Prefab objects.
+
+    Prefab objects are objects and classes that can run predesigned algorithms
+    for generating certain classes of regular objects, typically with 
+    sampleable features or properties. For example, planar defects in FCC 
+    systems are easily described in algorithmic form-- a series of {111} planes 
+    can be chosen to put a defect on.
+
+    Prefab objects will generally take in at least a base Generator object defining
+    the system of interest and potentially take in Volume objects. They will return
+    Volumes, or, more likely, MultiVolume objects which contains the resultant
+    structure defined by the prefab routine.
+    """
+
+    @abstractmethod
+    def build_object(self) -> BaseVolume:
+        """Construct and return a prefabicated structure."""
+        pass
 
 
 class fccMixedTwinSF(BasePrefab):
     """Prefab routine for returning FCC volume with mixed stacking fault and twin defects.
 
-    Given a volume with an attached generator (assumed to be FCC symmetry),
-    return a MultiVolume with a series of twin defects and stacking faults.
+    Given a volume with an attached generator (assumed to be FCC symmetry), 
+    return a MultiVolume with a series of twin defects and stacking faults. 
     Defects can be placed on any plane in the {111} family, and are uniformly
     randomly distributed on the available (111) planes with a minimum separation.
     Types of defects are uniformly randomly sampled, as well, according to a ratio
@@ -21,27 +44,24 @@ class fccMixedTwinSF(BasePrefab):
 
     Attributes:
         N (int): Number of defects to attempt to place into volume
-        plane (Tuple[int]): Length 3 tuple of Miller indices representing set of
+        plane (Tuple[int]): Length 3 tuple of Miller indices representing set of 
                             planes to put defects on
-        ratio (float): Ratio of stacking faults:total defects. A ratio of 1.0
+        ratio (float): Ratio of stacking faults:total defects. A ratio of 1.0 
                         will produce only stacking faults, while a ratio of 0.0
-                        will produce only twin defects.
+                        will produce only twin defects. 
         generator (Generator): Generator object representing FCC crystal system.
         volume (Volume): Volume object representing bounds of object in which
                         defects will be placed.
 
     """
 
-    def __init__(
-        self,
-        generator: Generator = None,
-        volume: BaseVolume = None,
-        ratio: float = 0.5,
-        N: int = 1,
-        min_sep: int = 3,
-        plane: Tuple[int] = (1, 1, 1),
-        rng=None,
-    ):
+    def __init__(self,
+                 generator: Generator = None,
+                 volume: BaseVolume = None,
+                 ratio: float = 0.5,
+                 N: int = 1,
+                 min_sep: int = 3,
+                 plane: Tuple[int] = (1, 1, 1)):
         self._N = None
         self._plane = None
         self._ratio = None
@@ -54,13 +74,11 @@ class fccMixedTwinSF(BasePrefab):
         self.ratio = ratio
         self.min_sep = min_sep
 
-        if generator is not None:
+        if not generator is None:
             self.generator = generator
 
-        if volume is not None:
+        if not volume is None:
             self.volume = volume
-
-        self.rng = np.random.default_rng() if rng is None else rng
 
     @property
     def N(self):
@@ -78,8 +96,8 @@ class fccMixedTwinSF(BasePrefab):
 
     @min_sep.setter
     def min_sep(self, val: int):
-        assert isinstance(
-            val, int
+        assert (
+            isinstance(val, int)
         ), "Must supply integer number of planes for minimum seperation of defects."
         self._min_sep = val
 
@@ -99,7 +117,8 @@ class fccMixedTwinSF(BasePrefab):
 
     @ratio.setter
     def ratio(self, val: float):
-        assert 0.0 <= val and val <= 1.0, "Ratio must be value in interval [0,1)."
+        assert (0.0 <= val and
+                val <= 1.0), "Ratio must be value in interval [0,1)."
         self._ratio = val
 
     @property
@@ -109,7 +128,8 @@ class fccMixedTwinSF(BasePrefab):
 
     @generator.setter
     def generator(self, val: Generator):
-        assert isinstance(val, Generator), "Must supply crystalline Generator object."
+        assert (isinstance(
+            val, Generator)), "Must supply crystalline Generator object."
         self._generator = val
 
     @property
@@ -119,7 +139,9 @@ class fccMixedTwinSF(BasePrefab):
 
     @volume.setter
     def volume(self, val: BaseVolume):
-        assert isinstance(val, BaseVolume), "Must supply either Volume or MultiVolume object."
+        assert (isinstance(
+            val,
+            BaseVolume)), "Must supply either Volume or MultiVolume object."
         self._volume = val
 
     def build_object(self, return_defect_types=False):
@@ -127,8 +149,7 @@ class fccMixedTwinSF(BasePrefab):
         # TODO: the bounding box isn't necessarily tangent to the valid volume (e.g., spheres)
         # perhaps refine the end points until planes intersect
         norm_vec = self.generator.voxel.bases @ np.array(
-            self.plane
-        )  # fine to use real bases since cubic
+            self.plane)  # fine to use real bases since cubic
         norm_vec /= np.linalg.norm(norm_vec)
         bbox = self.volume.get_bounding_box()
         ci = np.dot(norm_vec.reshape(1, 3), bbox.T).T
@@ -137,13 +158,19 @@ class fccMixedTwinSF(BasePrefab):
 
         for ao in self.volume.alg_objects:
             if isinstance(ao, Sphere):
-                # TODO: only override bbox if Sphere is smaller
+                # TODO: only override bbox if Sphere is smaller 
                 start = -1.0 * ao.radius * norm_vec
-                finish = ao.radius * norm_vec
+                finish = ao.radius * norm_vec      
 
-        sp = snap_plane_near_point(start, self.generator, self.plane, mode="floor")
-        ep = snap_plane_near_point(finish, self.generator, self.plane, mode="ceil")
-        d_tot = ep.dist_from_plane(sp.point)[0]
+        sp = snap_plane_near_point(start,
+                                   self.generator,
+                                   self.plane,
+                                   mode="floor")
+        ep = snap_plane_near_point(finish,
+                                   self.generator,
+                                   self.plane,
+                                   mode="ceil")
+        d_tot = ep.dist_from_plane(sp.point)
         d_hkl = self.generator.lattice.d_hkl(self.plane)
         N_planes = np.round(d_tot / d_hkl).astype(int)
         planes = [sp]
@@ -153,7 +180,7 @@ class fccMixedTwinSF(BasePrefab):
             planes.append(Plane(normal=sp.normal, point=new_point))
 
         # select N planes with min separation apart
-        splits = get_N_splits(self.N, self.min_sep, len(planes), rng=self.rng)
+        splits = get_N_splits(self.N, self.min_sep, len(planes))
         splits.reverse()
 
         # create sub volumes for final multivolume
@@ -163,15 +190,12 @@ class fccMixedTwinSF(BasePrefab):
         vols[0].priority = self.N
         twin_last = 1
 
-        defect_types = {"twin": False, "stacking_fault": False}
+        defect_types = {"twin":False, "stacking_fault":False}
         for i in range(self.N):
-            if self.rng.uniform() < self.ratio:
+            if (np.random.rand() < self.ratio):
                 # add stacking fault
-                burger = (
-                    twin_last
-                    * gen_tmp.voxel.sbases
-                    @ ((1 / 3) * np.array([1, 1, -2]) * np.sign(self.plane))
-                )
+                burger = twin_last * gen_tmp.voxel.sbases @ (
+                    (1 / 3) * np.array([1, 1, -2]) * np.sign(self.plane))
                 t = Translation(shift=burger)
                 defect_types["stacking_fault"] = True
             else:
@@ -179,10 +203,11 @@ class fccMixedTwinSF(BasePrefab):
                 t = Reflection(planes[splits[i]])
                 twin_last *= -1
                 defect_types["twin"] = True
-
+        
             gen_tmp = gen_tmp.from_generator(transformation=[t])
             new_vol = self.volume.from_volume(generator=gen_tmp)
-            plane_tmp = Plane(normal=1.0 * planes[splits[i]].normal, point=planes[splits[i]].point)
+            plane_tmp = Plane(normal=1.0 * planes[splits[i]].normal,
+                              point=planes[splits[i]].point)
             new_vol.add_alg_object(plane_tmp)
             new_vol.priority = self.N - (i + 1)
             vols.append(new_vol)
@@ -196,29 +221,31 @@ class fccMixedTwinSF(BasePrefab):
 class fccStackingFault(fccMixedTwinSF):
     """Prefab routine for returning FCC volume with stacking fault defects.
 
-    Given a volume with an attached generator (assumed to be FCC symmetry),
+    Given a volume with an attached generator (assumed to be FCC symmetry), 
     return a MultiVolume with a series of. stacking faults. Defects can be placed
-    on any plane in the {111} family, and are uniformly randomly distributed on
+    on any plane in the {111} family, and are uniformly randomly distributed on 
     the available (111) planes with a minimum separation.
 
     Attributes:
         N (int): Number of defects to attempt to place into volume
-        plane (Tuple[int]): Length 3 tuple of Miller indices representing set of
+        plane (Tuple[int]): Length 3 tuple of Miller indices representing set of 
                             planes to put defects on/
         generator (Generator): Generator object representing FCC crystal system.
         volume (Volume): Volume object representing bounds of object in which
                         defects will be placed.
     """
 
-    def __init__(
-        self,
-        generator: Generator = None,
-        volume: BaseVolume = None,
-        N: int = 1,
-        min_sep: int = 3,
-        plane: Tuple[int] = (1, 1, 1),
-    ):
-        super().__init__(generator=generator, volume=volume, N=N, min_sep=min_sep, plane=plane)
+    def __init__(self,
+                 generator: Generator = None,
+                 volume: BaseVolume = None,
+                 N: int = 1,
+                 min_sep: int = 3,
+                 plane: Tuple[int] = (1, 1, 1)):
+        super().__init__(generator=generator,
+                         volume=volume,
+                         N=N,
+                         min_sep=min_sep,
+                         plane=plane)
 
     @property
     def ratio(self):
@@ -228,33 +255,34 @@ class fccStackingFault(fccMixedTwinSF):
     def ratio(self, val):
         pass
 
-
 class fccTwin(fccMixedTwinSF):
     """Prefab routine for returning FCC volume with twin defects.
 
-    Given a volume with an attached generator (assumed to be FCC symmetry),
+    Given a volume with an attached generator (assumed to be FCC symmetry), 
     return a MultiVolume with a series of. stacking faults. Defects can be placed
-    on any plane in the {111} family, and are uniformly randomly distributed on
+    on any plane in the {111} family, and are uniformly randomly distributed on 
     the available (111) planes with a minimum separation.
 
     Attributes:
         N (int): Number of defects to attempt to place into volume
-        plane (Tuple[int]): Length 3 tuple of Miller indices representing set of
+        plane (Tuple[int]): Length 3 tuple of Miller indices representing set of 
                             planes to put defects on/
         generator (Generator): Generator object representing FCC crystal system.
         volume (Volume): Volume object representing bounds of object in which
                         defects will be placed.
     """
 
-    def __init__(
-        self,
-        generator: Generator = None,
-        volume: BaseVolume = None,
-        N: int = 1,
-        min_sep: int = 3,
-        plane: Tuple[int] = (1, 1, 1),
-    ):
-        super().__init__(generator=generator, volume=volume, N=N, min_sep=min_sep, plane=plane)
+    def __init__(self,
+                 generator: Generator = None,
+                 volume: BaseVolume = None,
+                 N: int = 1,
+                 min_sep: int = 3,
+                 plane: Tuple[int] = (1, 1, 1)):
+        super().__init__(generator=generator,
+                         volume=volume,
+                         N=N,
+                         min_sep=min_sep,
+                         plane=plane)
 
     @property
     def ratio(self):
@@ -264,17 +292,16 @@ class fccTwin(fccMixedTwinSF):
     def ratio(self, val):
         pass
 
-
 class wurtziteStackingFault(BasePrefab):
     """Prefab routine for returning Wurtizite volume with I1 stacking faults.
 
-    Given a volume with an attached generator (assumed to be Wurtize symmetry),
-    return a MultiVolume with a series of stacking faults.
+    Given a volume with an attached generator (assumed to be Wurtize symmetry), 
+    return a MultiVolume with a series of stacking faults. 
     Defects can be placed (002) planes, and are uniformly with a minimum separation.
 
     Attributes:
         N (int): Number of defects to attempt to place into volume
-        plane (Tuple[int]): Length 3 tuple of Miller indices representing set of
+        plane (Tuple[int]): Length 3 tuple of Miller indices representing set of 
                             planes to put defects on
         generator (Generator): Generator object representing Wurtzite crystal system.
                               Assumes c-axis is last axis of bases.
@@ -282,7 +309,6 @@ class wurtziteStackingFault(BasePrefab):
                         defects will be placed.
 
     """
-
     """
     # TODO: incorporate I2, E stacking faults https://arxiv.org/pdf/1405.1261.pdf
     # I2, E stacking faults with this method will create a ton of excess generators, volumes
@@ -291,14 +317,11 @@ class wurtziteStackingFault(BasePrefab):
     # that maintains an equivalent copy of the zinc blende lattice and creates SF regions that way
     """
 
-    def __init__(
-        self,
-        generator: Generator = None,
-        volume: BaseVolume = None,
-        N: int = 1,
-        min_sep: int = 6,
-        rng=None,
-    ):
+    def __init__(self,
+                 generator: Generator = None,
+                 volume: BaseVolume = None,
+                 N: int = 1,
+                 min_sep: int = 6):
         self._N = None
         self._min_sep = None
         self._generator = None
@@ -307,13 +330,11 @@ class wurtziteStackingFault(BasePrefab):
         self.N = N
         self.min_sep = min_sep
 
-        if generator is not None:
+        if not generator is None:
             self.generator = generator
 
-        if volume is not None:
+        if not volume is None:
             self.volume = volume
-
-        self.rng = np.random.default_rng() if rng is None else rng
 
     @property
     def N(self):
@@ -331,15 +352,15 @@ class wurtziteStackingFault(BasePrefab):
 
     @min_sep.setter
     def min_sep(self, val: int):
-        assert isinstance(
-            val, int
+        assert (
+            isinstance(val, int)
         ), "Must supply integer number of planes for minimum seperation of defects."
         self._min_sep = val
 
     @property
     def plane(self):
         """Miller indices of defect planes."""
-        return (0, 0, 2)
+        return (0,0,2)
 
     @property
     def generator(self):
@@ -348,7 +369,8 @@ class wurtziteStackingFault(BasePrefab):
 
     @generator.setter
     def generator(self, val: Generator):
-        assert isinstance(val, Generator), "Must supply crystalline Generator object."
+        assert (isinstance(
+            val, Generator)), "Must supply crystalline Generator object."
         self._generator = val
 
     @property
@@ -358,14 +380,16 @@ class wurtziteStackingFault(BasePrefab):
 
     @volume.setter
     def volume(self, val: BaseVolume):
-        assert isinstance(val, BaseVolume), "Must supply either Volume or MultiVolume object."
+        assert (isinstance(
+            val,
+            BaseVolume)), "Must supply either Volume or MultiVolume object."
         self._volume = val
 
     def build_object(self, return_defect_types=False):
         # get list of all planes in bounding box
         # TODO: the bounding box isn't necessarily tangent to the valid volume (e.g., spheres)
         # perhaps refine the end points until planes intersect
-
+        
         norm_vec = self.generator.voxel.reciprocal_bases @ np.array(self.plane)
         norm_vec /= np.linalg.norm(norm_vec)
         bbox = self.volume.get_bounding_box()
@@ -375,13 +399,19 @@ class wurtziteStackingFault(BasePrefab):
 
         for ao in self.volume.alg_objects:
             if isinstance(ao, Sphere):
-                # TODO: only override bbox if Sphere is smaller
+                # TODO: only override bbox if Sphere is smaller 
                 start = -1.0 * ao.radius * norm_vec
-                finish = ao.radius * norm_vec
+                finish = ao.radius * norm_vec            
 
-        sp = snap_plane_near_point(start, self.generator, self.plane, mode="floor")
-        ep = snap_plane_near_point(finish, self.generator, self.plane, mode="ceil")
-        d_tot = ep.dist_from_plane(sp.point)[0]
+        sp = snap_plane_near_point(start,
+                                   self.generator,
+                                   self.plane,
+                                   mode="floor")
+        ep = snap_plane_near_point(finish,
+                                   self.generator,
+                                   self.plane,
+                                   mode="ceil")
+        d_tot = ep.dist_from_plane(sp.point)
         d_hkl = self.generator.lattice.d_hkl(self.plane)
         N_planes = np.round(d_tot / d_hkl).astype(int)
         planes = [sp]
@@ -391,7 +421,7 @@ class wurtziteStackingFault(BasePrefab):
             planes.append(Plane(normal=sp.normal, point=new_point))
 
         # select N planes with min separation apart
-        splits = get_N_splits(self.N, self.min_sep, len(planes), rng=self.rng)
+        splits = get_N_splits(self.N, self.min_sep, len(planes))
         splits.reverse()
 
         # create sub volumes for final multivolume
@@ -400,16 +430,16 @@ class wurtziteStackingFault(BasePrefab):
         vols = [self.volume.from_volume(generator=gen_tmp)]
         vols[0].priority = self.N
 
-        defect_types = {"stacking_fault": True}
-        bz = (0.5) * self.generator.voxel.sbases @ np.array([0, 0, -1])
+        defect_types = {"stacking_fault":True}
+        bz = (0.5)*self.generator.voxel.sbases @ np.array([0, 0, -1])
 
         polarity = 1
         for i in range(self.N):
             # check if 100 or 200 plane in the previous generator
             cur_plane_pt = planes[splits[i]].point
 
-            plane_100 = snap_plane_near_point(cur_plane_pt, gen_tmp, (0, 0, 1))
-            plane_200 = snap_plane_near_point(cur_plane_pt, gen_tmp, (0, 0, 2))
+            plane_100 = snap_plane_near_point(cur_plane_pt, gen_tmp, (0,0,1))
+            plane_200 = snap_plane_near_point(cur_plane_pt, gen_tmp, (0,0,2))
 
             # adjust shift according to 100 plane vs 200 plane
             bsf = 2 if np.allclose(plane_100.point, plane_200.point) else 1
@@ -419,10 +449,11 @@ class wurtziteStackingFault(BasePrefab):
             b = b + bz
 
             t = Translation(shift=b)
-
+        
             gen_tmp = gen_tmp.from_generator(transformation=[t])
             new_vol = self.volume.from_volume(generator=gen_tmp)
-            plane_tmp = Plane(normal=1.0 * planes[splits[i]].normal, point=planes[splits[i]].point)
+            plane_tmp = Plane(normal=1.0 * planes[splits[i]].normal,
+                              point=planes[splits[i]].point)
             new_vol.add_alg_object(plane_tmp)
             new_vol.priority = self.N - (i + 1)
             vols.append(new_vol)
@@ -435,16 +466,21 @@ class wurtziteStackingFault(BasePrefab):
         else:
             return MultiVolume(volumes=vols)
 
-
 class SimpleGrainBoundary(BasePrefab):
     """Prefab routine for crystalline grain boundaries.
 
     Under development.
     """
 
-    def __init__(
-        self, z1, r1, z2=None, r2=None, plane=None, point=None, volume=None, generator=None
-    ):
+    def __init__(self,
+                 z1,
+                 r1,
+                 z2=None,
+                 r2=None,
+                 plane=None,
+                 point=None,
+                 volume=None,
+                 generator=None):
         """
         z1, z2 are zone axes for grains 1, 2
         r1 and r2 are phase about the zone axes, respectively
@@ -465,7 +501,9 @@ class SimpleGrainBoundary(BasePrefab):
     @z1.setter
     def z1(self, z1):
         z1 = np.array(z1)
-        assert z1.size == 3, "Zone axes inputs must be 3-element list, tuple, or numpy array"
+        assert (
+            z1.size == 3
+        ), "Zone axes inputs must be 3-element list, tuple, or numpy array"
         self._z1 = z1
 
     @property
@@ -478,10 +516,13 @@ class SimpleGrainBoundary(BasePrefab):
             self._z2 = self.z1
         else:
             z2 = np.array(z2)
-            assert z2.size == 3, "Zone axes inputs must be 3-element list, tuple, or numpy array"
+            assert (
+                z2.size == 3
+            ), "Zone axes inputs must be 3-element list, tuple, or numpy array"
             self._z2 = z2
 
     def build_object(self):
+
         zv = np.array([0, 0, 1])
         z1v = self.generator.voxel.sbases @ self.z1
         z2v = self.generator.voxel.sbases @ self.z2

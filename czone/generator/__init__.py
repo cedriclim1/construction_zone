@@ -1,3 +1,2 @@
-from .generator import AmorphousGenerator, Generator, NullGenerator
-
-__all__ = ["AmorphousGenerator", "Generator", "NullGenerator"]
+from .generator import *
+from .amorphous_algorithms import *
